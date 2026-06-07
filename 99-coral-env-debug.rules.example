@@ -1,0 +1,25 @@
+# Example udev policy for the Coral Env Sensor debug script.
+#
+# Goal: avoid granting a service user broad membership in the default i2c/spi
+# groups. Those groups commonly provide bus-wide access, so membership can write
+# to every device on the bus. Prefer a dedicated least-privilege group for this
+# board/debug workflow, and put unrelated safety-sensitive peripherals behind
+# their own device nodes, groups, services, or broker daemons.
+#
+# Install example:
+#   sudo groupadd --system coral-env-debug
+#   sudo usermod -aG coral-env-debug <debug-user>
+#   sudo install -m 0644 99-coral-env-debug.rules.example \
+#     /etc/udev/rules.d/99-coral-env-debug.rules
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger /dev/i2c-1 /dev/spidev0.0
+#
+# NOTE: Linux exposes /dev/i2c-1 and /dev/spidev0.0 as bus/controller nodes, not
+# per-chip capability handles. These rules intentionally grant only the debug
+# user/group access to the board bus nodes used by this script; they do not make
+# bus access per-address. If other sensitive devices share the same bus, move
+# them to separate controllers or expose them through separate constrained
+# kernel drivers/broker services instead of granting raw bus access.
+
+SUBSYSTEM=="i2c-dev", KERNEL=="i2c-1", GROUP="coral-env-debug", MODE="0660"
+SUBSYSTEM=="spidev", KERNEL=="spidev0.0", GROUP="coral-env-debug", MODE="0660"
