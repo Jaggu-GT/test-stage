@@ -13,8 +13,8 @@ Prints PASS, or a FAIL mapped to the likely cause. Uses force=True so it
 bypasses the daemon's min-refresh delay and gives immediate visual feedback.
 
 Usage:
-    python3 eink-smoke-test.py [path-to-driver.py]
-Default driver: ./waveshare-driver-securev2.py
+    python3 eink-smoke-test.py
+Default driver: waveshare-driver-securev2.py beside this script
 """
 from __future__ import annotations
 
@@ -55,15 +55,15 @@ for node in ("/dev/spidev0.0", "/dev/spidev0.1"):
             "enable SPI (dtparam=spi=on) and reboot — both CE0 and CE1 are needed")
 ok("spidev0.0 (lock token) + spidev0.1 (e-ink CE1) present")
 
-# 3. load driver by path (dashed filename isn't a normal import) ──────
-drv = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), DEFAULT_DRIVER)
-if not os.path.isfile(drv):
-    drv = DEFAULT_DRIVER  # fall back to cwd
+# 3. load the bundled driver (dashed filename isn't a normal import) ───
+if len(sys.argv) > 1:
+    die("driver path overrides are disabled",
+        "run without arguments so only the bundled driver is loaded")
+drv = os.path.join(os.path.dirname(os.path.abspath(__file__)), DEFAULT_DRIVER)
 step(f"loading driver: {drv}")
 if not os.path.isfile(drv):
     die(f"driver not found: {drv}",
-        "pass the path: python3 eink-smoke-test.py /path/to/driver.py")
+        "keep waveshare-driver-securev2.py beside eink-smoke-test.py")
 spec = importlib.util.spec_from_file_location("epd_driver", drv)
 mod = importlib.util.module_from_spec(spec)
 try:
